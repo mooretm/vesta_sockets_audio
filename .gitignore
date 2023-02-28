@@ -1,0 +1,8 @@
+.vscode/
+ProgrammerLocationRegistry.txt
+__pycache__
+*.wav
+venv/
+Vesta*Data/
+assets/images/
+output/
