@@ -1,11 +1,11 @@
-# **Vesta**
+# **Socket Audio Player**
 
-Graphical user interface (GUI) using Vulcan for clinical research experiments.
+Audio player with server that accepts commands from "Vulcan Over Sockets" app. Necessary because Vulcan does not support a version of Python that works with ASIO. I know. 😒
 
 - Written by: **Travis M. Moore**
 - Originally created: **October 28, 2022**
 - Latest version: **Version 0.0.0**
-- Last edited: **January 26, 2023**
+- Last edited: **March 01, 2023**
 <br>
 <br>
 

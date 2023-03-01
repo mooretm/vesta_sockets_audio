@@ -13,12 +13,11 @@ import json
 import io
 import struct
 
-# Import custom modules
 from models import audiomodel
-
+import sounddevice as sd
 
 class Message:
-    def __init__(self, selector, sock, addr):
+    def __init__(self, server, selector, sock, addr):
         self.selector = selector
         self.sock = sock
         self.addr = addr
@@ -28,7 +27,42 @@ class Message:
         self.jsonheader = None
         self.request = None
         self.response_created = False
+        self.event_to_send = None
 
+        self.server = server
+
+
+    def _create_response_json_content(self):
+        action = self.request.get("action")
+        if action == "playaudio":
+            self.audio_dict = self.request.get("value")
+            answer = f"Found file: {self.audio_dict.get('filepath')}\n " \
+                f"Found level: {self.audio_dict.get('level')}"
+            content = {"result": answer}
+            #self.event_to_send = '<<ServerPlayAudio>>'
+            self.a = audiomodel.Audio(
+                file_path=self.audio_dict.get('filepath'),
+                device_id=2)
+            self.a.play(level=self.audio_dict.get('level'))
+        elif action == "stopaudio":
+            content = {"result": "Stopping audio playback"}
+            #self.event_to_send = "<<ServerStopAudio>>"
+            sd.stop()
+        elif action == "killserver":
+            content = {"result": "Killing server"}
+            #self.selector.close()
+            self.server.looping = 0
+            print("libserver: Server killed!")
+        else:
+            content = {"result": f"libserver: Error: invalid action '{action}'."}
+        content_encoding = "utf-8"
+        response = {
+            "content_bytes": self._json_encode(content, content_encoding),
+            "content_type": "text/json",
+            "content_encoding": content_encoding,
+        }
+        return response
+    
 
     def _set_selector_events_mask(self, mode):
         """ Set selector to listen for events: mode is 'r', 'w', or 'rw'.
@@ -100,32 +134,6 @@ class Message:
         message_hdr = struct.pack(">H", len(jsonheader_bytes))
         message = message_hdr + jsonheader_bytes + content_bytes
         return message
-
-
-    def _create_response_json_content(self):
-        action = self.request.get("action")
-        if action == "playaudio":
-            audio_dict = self.request.get("value")
-            #answer = audio_commands.get(query) or f"libserver: No match for '{query}'."
-            self.a = audiomodel.Audio(file_path=audio_dict.get('filepath'))
-            self.a.play(level=audio_dict.get('level'))
-            answer = f"Playing {audio_dict.get('filepath')} at " \
-                f"{audio_dict.get('level')}"
-            content = {"result": answer}
-        elif action == "stopaudio":
-            self.a.stop()
-            content = {"result": "Stopping audio"}
-        elif action == "killserver":
-            quit()
-        else:
-            content = {"result": f"libserver: Error: invalid action '{action}'."}
-        content_encoding = "utf-8"
-        response = {
-            "content_bytes": self._json_encode(content, content_encoding),
-            "content_type": "text/json",
-            "content_encoding": content_encoding,
-        }
-        return response
 
 
     def _create_response_binary_content(self):

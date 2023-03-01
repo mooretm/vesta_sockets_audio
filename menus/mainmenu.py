@@ -26,11 +26,11 @@ class MainMenu(tk.Menu):
         # File menu #
         #############
         file_menu = tk.Menu(self, tearoff=False)
-        file_menu.add_command(
-            label="Session...",
-            command=self._event('<<FileSession>>')
-        )
-        file_menu.add_separator()
+        # file_menu.add_command(
+        #     label="Session...",
+        #     command=self._event('<<FileSession>>')
+        # )
+        #file_menu.add_separator()
         file_menu.add_command(
             label="Quit",
             command=self._event('<<FileQuit>>')
@@ -102,7 +102,7 @@ class MainMenu(tk.Menu):
             'Written by: Travis M. Moore\n'
             'Version 0.0.0\n'
             'Created: Feb 28, 2023\n'
-            'Last edited: Feb 28, 2023'
+            'Last edited: March 01, 2023'
         )
         messagebox.showinfo(
             title='About',

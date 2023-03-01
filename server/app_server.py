@@ -9,12 +9,27 @@ import socket
 import selectors
 import traceback
 
+import tkinter as tk
+
 # Import custom modules
-import libserver
+#import server.libserver as libserver
+from server import libserver
 
 
-class Server:
-    def __init__(self, host=None, port=None):
+class Server(tk.Frame):
+
+    # Find parent window and tell it to 
+    # generate a callback sequence
+    def _event(self, sequence):
+        def callback(*_):
+            root = self.master.winfo_toplevel()
+            root.event_generate(sequence)
+        return callback
+    
+
+    def __init__(self, host=None, port=None, **kwargs):
+        #super().__init__(parent, **kwargs)
+
         # Assign host
         if not host:
             self.host = "127.0.0.1"
@@ -26,6 +41,8 @@ class Server:
             self.port = 65432
         else:
             self.port = port
+
+        self.looping = 1
 
         # Create selector
         self.sel = selectors.DefaultSelector()
@@ -45,7 +62,8 @@ class Server:
         self.sel.register(lsock, selectors.EVENT_READ, data=None)
 
         try:
-            while True:
+            #while True:
+            while self.looping == 1:
                 events = self.sel.select(timeout=None)
                 for key, mask in events:
                     if key.data is None:
@@ -70,5 +88,6 @@ class Server:
         conn, addr = sock.accept()  # Should be ready to read
         print(f"\nAccepted connection from {addr}")
         conn.setblocking(False)
-        message = libserver.Message(self.sel, conn, addr)
+        message = libserver.Message(self, self.sel, conn, addr)
+        #self._event(message.event_to_send)
         self.sel.register(conn, selectors.EVENT_READ, data=message)

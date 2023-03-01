@@ -6,7 +6,7 @@
 
     Written by: Travis M. Moore
     Created: Feb 28, 2023
-    Last edited: Feb 28, 2023
+    Last edited: March 01, 2023
 """
 
 ###########
@@ -41,7 +41,8 @@ from views import mainview
 from views import audioview
 from views import calibrationview
 # Server imports
-import app_server
+#import server.app_server as app_server
+from server import app_server
 
 
 #########
@@ -71,29 +72,13 @@ class Application(tk.Tk):
         self.sessionpars_model = sessionmodel.SessionParsModel()
         self._load_sessionpars()
 
-        # Load CSV writer model
-        #self.csvmodel = csvmodel.CSVModel(self.sessionpars)
-
         # Load main view
         self.main_frame = mainview.MainFrame(self)
         self.main_frame.grid(row=5, column=5)
 
-        # Create trial counter
-        self.counter = None
-
-        # Create and update date trial label
-        # self.trial_var = tk.StringVar(value='Trial:')
-        # ttk.Label(self, textvariable=self.trial_var, 
-        #     style='trial.TLabel').grid(row=10, column=5, sticky='w',
-        #     padx=10, pady=10)
-
         # Load menus
         menu = mainmenu.MainMenu(self)
         self.config(menu=menu)
-
-        # Create response and outcome trackers
-        self.response = None
-        self.outcome = None
 
         # Create callback dictionary
         event_callbacks = {
@@ -120,8 +105,8 @@ class Application(tk.Tk):
             '<<AudioDialogSubmit>>': lambda _: self._save_sessionpars(),
 
             # Main View commands
-            '<<MainPlay>>': lambda _: self.play(),
-            '<<MainStop>>': lambda _: self.stop(),
+            '<<ServerPlayAudio>>': lambda _: self.play(),
+            '<<ServerStopAudio>>': lambda _: self.stop(),
         }
 
         # Bind callbacks to sequences
@@ -152,8 +137,7 @@ class Application(tk.Tk):
         """ Exit the application.
         """
         # Quit app
-        quit()
-        #self.destroy()
+        self.destroy()
 
 
     def resource_path(self, relative_path):
@@ -172,25 +156,27 @@ class Application(tk.Tk):
     # Main Frame Functions #
     ########################
     def play(self):
-        """ Begin session. Load and randomize stimulus presentation 
-            list. Clean up buttons.
+        """ Create audio object and present audio.
         """
         print("controller: Play func called")
         # Create audio object
-        # try:
-        #     self.a = audiomodel.Audio(file_path=audio_filepath,
-        #         device_id=self.sessionpars['Audio Device ID'].get())
-        # except FileNotFoundError:
-        #     print("\ncontroller: Audio file does not exist!")
-        #     return
-
-        # # Present audio
-        # self.a.play(level=self.stim_master.iloc[self.counter, 1])
-
+        self.a = audiomodel.Audio(
+            file_path=self.server.audio_dict.get('filepath'),
+            device_id=self.sessionpars['Audio Device ID'].get())
+            
+        # Present audio
+        self.a.play(level=self.server.audio_dict.get('level'))
 
 
     def stop(self):
+        """ Stop audio playback and manually delete audio object.
+        """
         print("controller: Stop func called")
+        self.a.stop()
+
+        del(self.a)
+        gc.collect()
+
         # try:
         #     self.a.stop()
 
