@@ -1,5 +1,4 @@
-""" Audio class for reading, writing, presenting
-    and converting .wav files
+""" Audio class for handling .wav files.
 """
 
 ###########
@@ -28,40 +27,26 @@ class Audio:
     """ Class for use with .wav files.
     """
 
-    def __init__(self, file_path, device_id=None):
+    def __init__(self, file_path):
         """ Read audio file and generate info.
 
             file_path: a Path object from pathlib
         """
-        print(f"\naudiomodel: Attempting to load audio file...")
+        print(f"\naudiomodel: Attempting to load {os.path.basename(file_path)}...")
         # Parse file path
-        #self.directory = file_path.split(os.sep) # path only
         self.directory = os.path.split(file_path)[0]
-        #self.name = str(file_path.split(os.sep)[-1]) # file name only
         self.name = os.path.basename(file_path)
         self.file_path = file_path
 
-        # Assign default audio device
-        if not device_id:
-            self.device_id = sd.default.device
-            self.num_outputs = sd.query_devices(sd.default.device[1])['max_output_channels']
-        else:
-            self.device_id = device_id
-            self.num_outputs = sd.query_devices(self.device_id)['max_output_channels']
-
-        # Read audio file
+         # Read audio file
         file_exists = os.access(self.file_path, os.F_OK)
         if not file_exists:
             print("audiomodel: Audio file not found!")
             raise FileNotFoundError
         else:
             self.signal, self.fs = sf.read(self.file_path)
-            print("audiomodel: Audio file found")
+            print("audiomodel: Found!")
             print(f"audiomodel: Sampling rate: {self.fs}")
-
-        # Convert from float64 to float32
-        # Necessary on 32-bit versions of Vulcan
-        self.signal = self.signal.astype('float32')
 
         # Get number of channels
         try:
@@ -69,10 +54,7 @@ class Audio:
         except IndexError:
             self.num_channels = 1
         self.channels = np.array(range(1, self.num_channels+1))
-        print(f"audiomodel: Number of channels: {self.num_channels}")
-
-        # Display audio device ID
-        print(f"audiomodel: Audio device ID: {self.device_id}")
+        print(f"audiomodel: Number of channels in file: {self.num_channels}")
 
         # Assign audio file attributes
         self.dur = len(self.signal) / self.fs
@@ -84,17 +66,31 @@ class Audio:
         self.data_type = self.signal.dtype
         print(f"audiomodel: Data type: {self.data_type}")
 
-        print("audiomodel: Done!")
 
-
-    def play(self, level=None):
-        """ Present working audio
+    def play(self, level=None, device_id=None):
+        """ Present audio
         """
+        print("\naudiomodel: Preparing to present audio...")
         # Create a temporary signal to be modified
         temp = self.signal.copy()
+        temp = temp.astype(np.float32)
 
-        # Get presentation level
+        # Assign audio device defaults
+        sd.default.device = device_id
+        sd.default.samplerate = self.fs
+        #sd.default.channels = self.num_channels
+
+        # Get number of available audio device channels
+        self.num_outputs = sd.query_devices(sd.default.device)['max_output_channels']
+
+        # Display audio device features to console
+        print(f"audiomodel: Audio device: {sd.query_devices(sd.default.device)['name']}")
+        print(f"audiomodel: Device outputs: {self.num_outputs}")
+
+        # Set presentation level
         if not level:
+            # Normalize if no level is provided
+            print("audiomodel: No level provided, normalizing...")
             for chan in range(0, self.num_channels):
                 temp[:, chan] = temp[:, chan] - np.mean(temp[:, chan]) # remove DC offset
                 temp[:, chan] = temp[:, chan] / np.max(np.abs(temp[:, chan])) # normalize
@@ -102,29 +98,43 @@ class Audio:
                 #print(f"\nMax of signal: {np.max(np.abs(self.signal[:, chan]))}")
                 #print(f"Max of temp: {np.max(np.abs(temp[:, chan]))}")
         else:
-            self.level = level
-            try:
-                # Apply presentation level to each channel
-                for chan in range(0, self.num_channels):
-                    temp[:, chan] = temp[:, chan] * self.level
-                    #print(f"\nMax of signal: {np.max(np.abs(self.signal[:, chan]))}")
-                    #print(f"Max of temp: {np.max(np.abs(temp[:, chan]))}")
-            except IndexError:
-                temp = temp * self.level
+            # Convert level in dB to magnitude
+            mag = self.db2mag(level)
+            # Apply scaling factor to temp
+            temp = temp * mag
+            # try:
+            #     # Apply scaling factor to each channel
+            #     print(f"audiomodel: Applying scaling factor of {level} to each channel...")
+            #     for chan in range(0, self.num_channels):
+            #         temp[:, chan] = temp[:, chan] * level
+            #         #print(f"\nMax of signal: {np.max(np.abs(self.signal[:, chan]))}")
+            #         #print(f"Max of temp: {np.max(np.abs(temp[:, chan]))}")
+            # except IndexError:
+            #     temp = temp * level
 
-        # Make modified signal available for testing
-        self.sig = temp
+        print(f"audiomodel: Audio shape: {temp.shape}")
 
         # Present audio
+        print("audiomodel: Attempting to present audio...")
+        # Check that audio device has enough channels for audio
         if self.num_outputs < self.num_channels:
             print(f"\naudiomodel: {self.num_channels}-channel file, but "
                 f"only {self.num_outputs} audio device output channels!")
             print("audiomodel: Dropping " +
                 f"{self.num_channels - self.num_outputs} audio file channels")
-            sd.play(temp[:, 0:self.num_outputs], mapping=self.channels[0:self.num_outputs])
+            try:
+                sd.play(temp[:, 0:self.num_outputs])
+                #sd.wait(self.dur+0.5)
+            except Exception as e:
+                print(e)
+            print("audiomodel: Done")
         else:
-            sd.play(temp.T, self.fs, mapping=self.channels)
-            #sd.wait(self.dur+0.5)
+            try:
+                sd.play(temp)
+                #sd.wait(self.dur+0.5)
+            except Exception as e:
+                print(e)
+            print("audiomodel: Done")
 
 
     def stop(self):

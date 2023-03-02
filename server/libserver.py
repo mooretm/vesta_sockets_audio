@@ -17,7 +17,7 @@ from models import audiomodel
 import sounddevice as sd
 
 class Message:
-    def __init__(self, server, selector, sock, addr):
+    def __init__(self, server, selector, sock, addr, audio_device):
         self.selector = selector
         self.sock = sock
         self.addr = addr
@@ -27,9 +27,10 @@ class Message:
         self.jsonheader = None
         self.request = None
         self.response_created = False
-        self.event_to_send = None
 
+        #self.event_to_send = None
         self.server = server
+        self.audio_device = audio_device
 
 
     def _create_response_json_content(self):
@@ -40,10 +41,12 @@ class Message:
                 f"Found level: {self.audio_dict.get('level')}"
             content = {"result": answer}
             #self.event_to_send = '<<ServerPlayAudio>>'
+            #print(f"libserver: File = {self.audio_dict.get('filepath')}")
             self.a = audiomodel.Audio(
-                file_path=self.audio_dict.get('filepath'),
-                device_id=2)
-            self.a.play(level=self.audio_dict.get('level'))
+                file_path=self.audio_dict.get('filepath'))
+            self.a.play(
+                level=self.audio_dict.get('level'),
+                device_id=self.audio_device)
         elif action == "stopaudio":
             content = {"result": "Stopping audio playback"}
             #self.event_to_send = "<<ServerStopAudio>>"
@@ -62,7 +65,7 @@ class Message:
             "content_encoding": content_encoding,
         }
         return response
-    
+
 
     def _set_selector_events_mask(self, mode):
         """ Set selector to listen for events: mode is 'r', 'w', or 'rw'.

@@ -6,7 +6,7 @@
 
     Written by: Travis M. Moore
     Created: Feb 28, 2023
-    Last edited: March 01, 2023
+    Last edited: March 02, 2023
 """
 
 ###########
@@ -14,16 +14,11 @@
 ###########
 # Import GUI packages
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-#from PIL import Image, ImageTk
 
 # Import system packages
 import os
 import sys
-from pathlib import Path
 import gc
-import time
 
 # Import misc packages
 import webbrowser
@@ -37,11 +32,9 @@ from models import sessionmodel
 from models import audiomodel
 # View imports
 from views import mainview
-#from views import sessionview
 from views import audioview
 from views import calibrationview
 # Server imports
-#import server.app_server as app_server
 from server import app_server
 
 
@@ -62,11 +55,6 @@ class Application(tk.Tk):
         self.resizable(False, False)
         self.title("Socket Audio")
 
-        # Increase font size globally
-        # style = ttk.Style()
-        # default_font = tkFont.nametofont('TkDefaultFont')
-        # default_font.configure(size=14)
-
         # Load current session parameters from file
         # Or load defaults if file does not exist yet
         self.sessionpars_model = sessionmodel.SessionParsModel()
@@ -83,30 +71,24 @@ class Application(tk.Tk):
         # Create callback dictionary
         event_callbacks = {
             # File menu
-            '<<FileSession>>': lambda _: self._show_session_dialog(),
             '<<FileQuit>>': lambda _: self._quit(),
+
+            # Server menu
+            '<<ServerStartServer>>': lambda _: self.start_server(),
 
             # Tools menu
             '<<ToolsAudioSettings>>': lambda _: self._show_audio_dialog(),
             '<<ToolsCalibration>>': lambda _: self._show_calibration_dialog(),
-            '<<ToolsStartServer>>': lambda _: self.start_server(),
 
             # Help menu
             '<<Help>>': lambda _: self._show_help(),
 
-            # Session dialog commands
-            '<<SessionSubmit>>': lambda _: self._save_sessionpars(),
-
             # Calibration dialog commands
-            '<<PlayCalStim>>': lambda _: self._play_calibration(),
-            '<<CalibrationSubmit>>': lambda _: self._calc_level(),
+            '<<CalPlay>>': lambda _: self.play_calibration_file(),
+            '<<CalStop>>': lambda _: self.stop_calibration_file(),
 
             # Audio dialog commands
             '<<AudioDialogSubmit>>': lambda _: self._save_sessionpars(),
-
-            # Main View commands
-            '<<ServerPlayAudio>>': lambda _: self.play(),
-            '<<ServerStopAudio>>': lambda _: self.stop(),
         }
 
         # Bind callbacks to sequences
@@ -152,85 +134,9 @@ class Application(tk.Tk):
         return os.path.join(base_path, relative_path)
 
 
-    ########################
-    # Main Frame Functions #
-    ########################
-    def play(self):
-        """ Create audio object and present audio.
-        """
-        print("controller: Play func called")
-        # Create audio object
-        self.a = audiomodel.Audio(
-            file_path=self.server.audio_dict.get('filepath'),
-            device_id=self.sessionpars['Audio Device ID'].get())
-            
-        # Present audio
-        self.a.play(level=self.server.audio_dict.get('level'))
-
-
-    def stop(self):
-        """ Stop audio playback and manually delete audio object.
-        """
-        print("controller: Stop func called")
-        self.a.stop()
-
-        del(self.a)
-        gc.collect()
-
-        # try:
-        #     self.a.stop()
-
-        #     # Manually remove current audio object from memory
-        #     # This is required due to the 32bit/64bit issue in numpy
-        #     del(self.a)
-        #     gc.collect()
-        # except AttributeError:
-        #     print("controller: Stimuli not loaded yet!")
-        #     messagebox.showerror(title="File Not Found!",
-        #         message="Stimuli not loaded yet!",
-        #         detail="You must start the session by clicking the START " +
-        #             "button to load the audio files.")
-
-
-    #######################
-    # Help Menu Functions #
-    #######################
-    def _show_help(self):
-        """ Create html help file and display in default browser
-        """
-        print("controller: Looking for help file in compiled " +
-            "version temp location...")
-        help_file = self.resource_path('README\\README.html')
-        file_exists = os.access(help_file, os.F_OK)
-        if not file_exists:
-            print('controller: Not found!\nChecking for help file in ' +
-                'local script version location')
-            # Read markdown file and convert to html
-            with open('README.md', 'r') as f:
-                text = f.read()
-                html = markdown.markdown(text)
-
-            # Create html file for display
-            with open('.\\assets\\README\\README.html', 'w') as f:
-                f.write(html)
-
-            # Open README in default web browser
-            webbrowser.open('.\\assets\\README\\README.html')
-        else:
-            help_file = self.resource_path('README\\README.html')
-            webbrowser.open(help_file)
-
-
-    ############################
-    # Session Dialog Functions #
-    ############################
-    # def _show_session_dialog(self):
-    #     """ Show session parameter dialog
-    #     """
-    #     print("\ncontroller: Calling session dialog...")
-    #     sessionview.SessionDialog(self, self.sessionpars)
-
-
+    ###########################
+    # Session Model Functions #
+    ###########################
     def _load_sessionpars(self):
         """ Load parameters into self.sessionpars dict 
         """
@@ -259,26 +165,26 @@ class Application(tk.Tk):
             self.sessionpars_model.save()
 
 
+    #########################
+    # Server Menu Functions #
+    #########################
+    def start_server(self):
+        """ Create server and begin listening.
+        """
+        self.server = app_server.Server(
+            audio_device=self.sessionpars["Audio Device ID"].get()
+            )
+
+
     ########################
     # Tools Menu Functions #
     ########################
-    def start_server(self):
-        self.server = app_server.Server()
-
-
-    ##########################
-    # Audio Dialog Functions #
-    ##########################
     def _show_audio_dialog(self):
         """ Show audio settings dialog
         """
         print("\ncontroller: Calling audio dialog...")
         audioview.AudioDialog(self, self.sessionpars)
 
-
-    ################################
-    # Calibration Dialog Functions #
-    ################################
     def _show_calibration_dialog(self):
         """ Display the calibration dialog window
         """
@@ -286,65 +192,75 @@ class Application(tk.Tk):
         calibrationview.CalibrationDialog(self, self.sessionpars)
 
 
-    def _calc_level(self):
-        """ Calculate and save adjusted presentation level
+    ################################
+    # Calibration Dialog Functions #
+    ################################
+    def _get_cal_file(self):
+        """ Load specified calibration file
         """
-        # Calculate SLM offset
-        print("\ncontroller: Calculating new presentation level...")
-        slm_offset = self.sessionpars['SLM Reading'].get() - self.sessionpars['raw_lvl'].get()
-        # Provide console feedback
-        print(f"SLM reading: {self.sessionpars['SLM Reading'].get()}")
-        print(f"raw_lvl: {self.sessionpars['raw_lvl'].get()}")
-        print(f"SLM offset: {slm_offset}")
+        print("audiomodel: Locating calibration file...")
+        if self.sessionpars['Calibration File'].get() == 'cal_stim.wav':
+            self.cal_file = self.resource_path('cal_stim.wav')
+            file_exists = os.access(self.cal_file, os.F_OK)
+            if not file_exists:
+                self.cal_file = '.\\assets\\cal_stim.wav'
+        else: # Custom file was provided
+            self.cal_file = self.sessionpars['Calibration File'].get()
 
-        # Calculate new presentation level
-        self.sessionpars['Adjusted Presentation Level'].set(
-            self.sessionpars['Presentation Level'].get() - slm_offset)
-        print(f"New presentation level: " +
-            f"{self.sessionpars['Adjusted Presentation Level'].get()}")
-
-        # Save SLM offset and updated level
-        self._save_sessionpars()
+        print(f"controller: Using {self.cal_file}")
 
 
-    def _play_calibration(self):
+    def play_calibration_file(self):
         """ Load calibration file and present
         """
-        # Check for default calibration stimulus request
-        if self.sessionpars['Calibration File'].get() == 'cal_stim.wav':
-            # Create calibration audio object
-            try:
-                # If running from compiled, look in compiled temporary location
-                cal_file = self.resource_path('cal_stim.wav')
-                cal_stim = audiomodel.Audio(
-                    file_path = cal_file,
-                    device_id = self.sessionpars['Audio Device ID'].get()
-                    )
-            except FileNotFoundError:
-                # If running from command line, look in assets folder
-                cal_file = '.\\assets\\cal_stim.wav'
-                cal_stim = audiomodel.Audio(
-                    file_path = cal_file,
-                    device_id = self.sessionpars['Audio Device ID'].get()
-                    )
+        # Get calibration file
+        self._get_cal_file()
 
-            # Get presentation level from calibration dialog
-            # Convert from db to magnitude
-            cal_lvl = cal_stim.db2mag(self.sessionpars['raw_lvl'].get())
+        # Present calibration file
+        self.cal = audiomodel.Audio(file_path=self.cal_file)
+        self.cal.play(
+            level=self.sessionpars['scaling_factor'].get(),
+            device_id=self.sessionpars['Audio Device ID'].get()
+        )
 
-            # Present calibration stimulus
-            cal_stim.play(level=cal_lvl)
 
-        else: # Custom calibration file was provided
-            print("controller: Reading provided calibration file...")
-            cal_stim = audiomodel.Audio(
-                file_path = self.sessionpars['Calibration File'].get(),
-                device_id = self.sessionpars['Audio Device ID'].get()
-            )
+    def stop_calibration_file(self):
+        """ Stop playback of calibration file
+        """
+        try:
+            self.cal.stop()
+        except AttributeError:
+            print("controller: No calibration stimulus found!")
+        
 
-        # Present calibration stimulus
-        cal_lvl = cal_stim.db2mag(self.sessionpars['raw_lvl'].get())
-        cal_stim.play(level=cal_lvl)
+
+    #######################
+    # Help Menu Functions #
+    #######################
+    def _show_help(self):
+        """ Create html help file and display in default browser
+        """
+        print("\ncontroller: Looking for help file in compiled " +
+            "version temp location...")
+        help_file = self.resource_path('README\\README.html')
+        file_exists = os.access(help_file, os.F_OK)
+        if not file_exists:
+            print('controller: Not found!\nChecking for help file in ' +
+                'local script version location')
+            # Read markdown file and convert to html
+            with open('README.md', 'r') as f:
+                text = f.read()
+                html = markdown.markdown(text)
+
+            # Create html file for display
+            with open('.\\assets\\README\\README.html', 'w') as f:
+                f.write(html)
+
+            # Open README in default web browser
+            webbrowser.open('.\\assets\\README\\README.html')
+        else:
+            help_file = self.resource_path('README\\README.html')
+            webbrowser.open(help_file)
 
 
 if __name__ == "__main__":

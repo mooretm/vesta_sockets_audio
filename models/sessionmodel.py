@@ -18,12 +18,13 @@ from glob import glob
 class SessionParsModel:
     # Define dictionary items
     fields = {
-        'Presentation Level': {'type': 'float', 'value': 65},
-        'Speaker Number': {'type': 'int', 'value': 1},
+        #'Presentation Level': {'type': 'float', 'value': 65},
+        #'Speaker Number': {'type': 'int', 'value': 1},
         'Audio Device ID': {'type': 'int', 'value': 999},
-        'raw_lvl': {'type': 'float', 'value': -20},
-        'SLM Reading': {'type': 'float', 'value': 70},
-        'Adjusted Presentation Level': {'type': 'float', 'value': -50},
+        'scaling_factor': {'type': 'float', 'value': -30},
+        #'raw_lvl': {'type': 'float', 'value': -20},
+        #'SLM Reading': {'type': 'float', 'value': 70},
+        #'Adjusted Presentation Level': {'type': 'float', 'value': -50},
         'Calibration File': {'type': 'str', 'value': 'cal_stim.wav'}
     }
 

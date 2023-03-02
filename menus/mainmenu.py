@@ -54,6 +54,17 @@ class MainMenu(tk.Menu):
         # self.add_cascade(label='Playback', menu=playback_menu, font=("", font_size))
 
 
+        ###############
+        # Server Menu #
+        ###############
+        server_menu = tk.Menu(self, tearoff=False)
+        server_menu.add_command(
+            label="Start Server",
+            command=self._event('<<ServerStartServer>>')
+        )
+        # Add Server menu to the menubar
+        self.add_cascade(label="Server", menu=server_menu, font=("", font_size))
+
         ############## 
         # Tools menu #
         ##############
@@ -65,11 +76,6 @@ class MainMenu(tk.Menu):
         tools_menu.add_command(
             label='Calibration...',
             command=self._event('<<ToolsCalibration>>')
-        )
-        tools_menu.add_separator()
-        tools_menu.add_command(
-            label="Start Server",
-            command=self._event('<<ToolsStartServer>>')
         )
         # Add Tools menu to the menubar
         self.add_cascade(label="Tools", menu=tools_menu, font=("", font_size))

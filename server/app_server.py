@@ -16,7 +16,7 @@ import tkinter as tk
 from server import libserver
 
 
-class Server(tk.Frame):
+class Server:
 
     # Find parent window and tell it to 
     # generate a callback sequence
@@ -27,7 +27,7 @@ class Server(tk.Frame):
         return callback
     
 
-    def __init__(self, host=None, port=None, **kwargs):
+    def __init__(self, audio_device, host=None, port=None, **kwargs):
         #super().__init__(parent, **kwargs)
 
         # Assign host
@@ -41,6 +41,8 @@ class Server(tk.Frame):
             self.port = 65432
         else:
             self.port = port
+
+        self.audio_device = audio_device
 
         self.looping = 1
 
@@ -57,7 +59,7 @@ class Server(tk.Frame):
         lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         lsock.bind((self.host, self.port))
         lsock.listen()
-        print(f"Listening on {(self.host, self.port)}")
+        print(f"\napp_server: Listening on {(self.host, self.port)}")
         lsock.setblocking(False)
         self.sel.register(lsock, selectors.EVENT_READ, data=None)
 
@@ -74,20 +76,21 @@ class Server(tk.Frame):
                             message.process_events(mask)
                         except Exception:
                             print(
-                                f"Main: Error: Exception for {message.addr}:\n"
+                                f"app_server: Error: Exception for {message.addr}:\n"
                                 f"{traceback.format_exc()}"
                             )
                             message.close()
         except KeyboardInterrupt:
-            print("Caught keyboard interrupt, exiting")
+            print("app_server: Caught keyboard interrupt, exiting")
         finally:
             self.sel.close()
+            quit()
 
 
     def accept_wrapper(self, sock):
         conn, addr = sock.accept()  # Should be ready to read
         print(f"\nAccepted connection from {addr}")
         conn.setblocking(False)
-        message = libserver.Message(self, self.sel, conn, addr)
+        message = libserver.Message(self, self.sel, conn, addr, self.audio_device)
         #self._event(message.event_to_send)
         self.sel.register(conn, selectors.EVENT_READ, data=message)
