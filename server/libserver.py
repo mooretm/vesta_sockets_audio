@@ -54,7 +54,7 @@ class Message:
         elif action == "killserver":
             content = {"result": "Killing server"}
             #self.selector.close()
-            self.server.looping = 0
+            self.server.listening = 0
             print("libserver: Server killed!")
         else:
             content = {"result": f"libserver: Error: invalid action '{action}'."}

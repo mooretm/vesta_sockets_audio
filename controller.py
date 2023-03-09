@@ -18,7 +18,6 @@ import tkinter as tk
 # Import system packages
 import os
 import sys
-import gc
 
 # Import misc packages
 import webbrowser

@@ -22,6 +22,7 @@ class MainMenu(tk.Menu):
 
         font_size = 16
 
+
         #############
         # File menu #
         #############
@@ -38,22 +39,6 @@ class MainMenu(tk.Menu):
         self.add_cascade(label='File', menu=file_menu, font=("", font_size))
 
 
-        #################
-        # Playback menu #
-        #################
-        # playback_menu = tk.Menu(self, tearoff=False)
-        # playback_menu.add_command(
-        #     label="Start Audio",
-        #     command=self._event('<<PlaybackStart>>')
-        # )
-        # playback_menu.add_separator()
-        # playback_menu.add_command(
-        #     label="Stop Audio",
-        #     command=self._event('<<PlaybackStop>>')
-        # )
-        # self.add_cascade(label='Playback', menu=playback_menu, font=("", font_size))
-
-
         ###############
         # Server Menu #
         ###############
@@ -64,6 +49,7 @@ class MainMenu(tk.Menu):
         )
         # Add Server menu to the menubar
         self.add_cascade(label="Server", menu=server_menu, font=("", font_size))
+
 
         ############## 
         # Tools menu #
@@ -86,11 +72,11 @@ class MainMenu(tk.Menu):
         #############
         help_menu = tk.Menu(self, tearoff=False)
         help_menu.add_command(
-            label='About',
+            label='About...',
             command=self.show_about
         )
         help_menu.add_command(
-            label='Help',
+            label='Help...',
             command=self._event('<<Help>>')
         )
         # Add help menu to the menubar
@@ -106,9 +92,9 @@ class MainMenu(tk.Menu):
         about_message = 'Socket Audio Player'
         about_detail = (
             'Written by: Travis M. Moore\n'
-            'Version 0.0.0\n'
+            'Version 1.0.0\n'
             'Created: Feb 28, 2023\n'
-            'Last edited: March 01, 2023'
+            'Last edited: March 09, 2023'
         )
         messagebox.showinfo(
             title='About',

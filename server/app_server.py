@@ -9,7 +9,11 @@ import socket
 import selectors
 import traceback
 
+# Import GUI packages
 import tkinter as tk
+
+# Import system packages
+import sys
 
 # Import custom modules
 #import server.libserver as libserver
@@ -30,6 +34,9 @@ class Server:
     def __init__(self, audio_device, host=None, port=None, **kwargs):
         #super().__init__(parent, **kwargs)
 
+        # Initialize values
+        self.audio_device = audio_device
+
         # Assign host
         if not host:
             self.host = "127.0.0.1"
@@ -42,9 +49,8 @@ class Server:
         else:
             self.port = port
 
-        self.audio_device = audio_device
-
-        self.looping = 1
+        # While loop control for server listening
+        self.listening = 1
 
         # Create selector
         self.sel = selectors.DefaultSelector()
@@ -64,8 +70,7 @@ class Server:
         self.sel.register(lsock, selectors.EVENT_READ, data=None)
 
         try:
-            #while True:
-            while self.looping == 1:
+            while self.listening == 1:
                 events = self.sel.select(timeout=None)
                 for key, mask in events:
                     if key.data is None:
@@ -84,7 +89,7 @@ class Server:
             print("app_server: Caught keyboard interrupt, exiting")
         finally:
             self.sel.close()
-            quit()
+            sys.exit()
 
 
     def accept_wrapper(self, sock):
