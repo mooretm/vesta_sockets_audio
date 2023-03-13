@@ -15,6 +15,10 @@ class MainMenu(tk.Menu):
             root = self.master.winfo_toplevel()
             root.event_generate(sequence)
         return callback
+    
+
+    def _bind_accelerators(self):
+        self.bind_all('<Control-q>', self._event('<<FileQuit>>'))
 
 
     def __init__(self, parent, **kwargs):
@@ -34,7 +38,8 @@ class MainMenu(tk.Menu):
         #file_menu.add_separator()
         file_menu.add_command(
             label="Quit",
-            command=self._event('<<FileQuit>>')
+            command=self._event('<<FileQuit>>'),
+            accelerator='Crtl+Q'
         )
         self.add_cascade(label='File', menu=file_menu, font=("", font_size))
 
@@ -59,6 +64,7 @@ class MainMenu(tk.Menu):
             label='Audio Settings...',
             command=self._event('<<ToolsAudioSettings>>')
         )
+        tools_menu.add_separator()
         tools_menu.add_command(
             label='Calibration...',
             command=self._event('<<ToolsCalibration>>')
@@ -82,6 +88,8 @@ class MainMenu(tk.Menu):
         # Add help menu to the menubar
         self.add_cascade(label="Help", menu=help_menu, font=("", font_size))
 
+        # Bind shortcut keys
+        self._bind_accelerators()
 
     ##################
     # Menu Functions #

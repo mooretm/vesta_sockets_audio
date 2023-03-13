@@ -11,6 +11,7 @@
 
 # Import data science packages
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Import system packages
 import os
@@ -18,6 +19,9 @@ import os
 # Import audio packages
 import soundfile as sf
 import sounddevice as sd
+
+# Import GUI packages
+from tkinter import messagebox
 
 
 #########
@@ -114,6 +118,10 @@ class Audio:
 
         print(f"audiomodel: Audio shape: {temp.shape}")
 
+        # Check for clipping after level has been applied
+        if np.max(np.abs(temp)) > 0.999:
+            self._clipping(temp)
+
         # Present audio
         print("audiomodel: Attempting to present audio...")
         # Check that audio device has enough channels for audio
@@ -141,6 +149,27 @@ class Audio:
         """ Stop audio presentation.
         """
         sd.stop()
+
+
+    def plot_wave(self, sig):
+        plt.plot(self.t, sig)
+        plt.title("Clipping Has Occurred!")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Amplitude")
+        plt.axhline(y=1, color='red', linestyle='--')
+        plt.axhline(y=-1, color='red', linestyle='--')
+        plt.show()
+
+
+    def _clipping(self, temp):
+        messagebox.showerror(
+            title="Clipping",
+            message="The level provided is too high. Enter a lower level.",
+            detail="The waveform will be plotted when this message is " +
+                "closed for visual inspection."
+        )
+        self.plot_wave(temp)
+        raise Exception("audiomodel: Clipping occurred")
 
 
     @staticmethod

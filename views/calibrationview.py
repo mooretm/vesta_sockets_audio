@@ -94,24 +94,26 @@ class CalibrationDialog(tk.Toplevel):
         # Presentation controls #
         #########################
         # Scaling factor
-        ttk.Label(lf_playback, text="Offset (dB FS):").grid(
+        ttk.Label(lf_playback, text="Level (dB):").grid(
             column=5, row=5, sticky='e', **options_small)
         ent_slm = ttk.Entry(lf_playback, textvariable=self.sessionpars['scaling_factor'],
             width=6)
         ent_slm.grid(column=10, row=5, sticky='w', **options_small)
  
         # Play calibration stimulus
-        ttk.Label(lf_playback, text="Calibration Stimulus:").grid(
-            column=5, row=10, sticky='e', **options_small)
+        # ttk.Label(lf_playback, text="Calibration Stimulus:").grid(
+        #     column=5, row=10, sticky='e', **options_small)
         btn_play = ttk.Button(lf_playback, text="Play", command=self._on_play)
-        btn_play.grid(column=10, row=10, sticky='w', **options_small)
-        #btn_play.focus()
+        btn_play.grid(column=5, row=10, columnspan=6, sticky='ew', **options_small)
+        #btn_play.grid(column=10, row=10, columnspan=5, sticky='w', **options_small)
+
 
         # Stop calibration stimulus
-        ttk.Label(lf_playback, text="Calibration Stimulus:").grid(
-            column=5, row=15, sticky='e', **options_small)
+        # ttk.Label(lf_playback, text="Calibration Stimulus:").grid(
+        #     column=5, row=15, sticky='e', **options_small)
         btn_play = ttk.Button(lf_playback, text="Stop", command=self._on_stop)
-        btn_play.grid(column=10, row=15, sticky='w', **options_small)
+        btn_play.grid(column=5, row=15, columnspan=6, sticky='ew', **options_small)
+        #btn_play.grid(column=10, row=15, columnspan=5, sticky='w', **options_small)
 
 
         # Submit button

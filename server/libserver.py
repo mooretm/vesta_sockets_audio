@@ -13,6 +13,10 @@ import json
 import io
 import struct
 
+# Import GUI packages
+from tkinter import messagebox
+
+# Import custom modules
 from models import audiomodel
 import sounddevice as sd
 

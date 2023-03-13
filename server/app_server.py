@@ -11,6 +11,7 @@ import traceback
 
 # Import GUI packages
 import tkinter as tk
+from tkinter import messagebox
 
 # Import system packages
 import sys
