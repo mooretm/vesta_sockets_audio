@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.1
+
+Date: Mar 17, 2023
+
+### Initial Release
+1. Cleaned up messages printed to console to be more legible.
+<br>
+<br>
+
+---
+
 ## v1.0.0
 
 Date: Mar 09, 2023

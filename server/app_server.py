@@ -66,7 +66,7 @@ class Server:
         lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         lsock.bind((self.host, self.port))
         lsock.listen()
-        print(f"\napp_server: Listening on {(self.host, self.port)}")
+        print(f"\nappserver: Listening on {(self.host, self.port)}")
         lsock.setblocking(False)
         self.sel.register(lsock, selectors.EVENT_READ, data=None)
 
@@ -82,12 +82,12 @@ class Server:
                             message.process_events(mask)
                         except Exception:
                             print(
-                                f"app_server: Error: Exception for {message.addr}:\n"
+                                f"appserver: Error: Exception for {message.addr}:\n"
                                 f"{traceback.format_exc()}"
                             )
                             message.close()
         except KeyboardInterrupt:
-            print("app_server: Caught keyboard interrupt, exiting")
+            print("appserver: Caught keyboard interrupt, exiting")
         finally:
             self.sel.close()
             sys.exit()
@@ -95,7 +95,8 @@ class Server:
 
     def accept_wrapper(self, sock):
         conn, addr = sock.accept()  # Should be ready to read
-        print(f"\nAccepted connection from {addr}")
+        print('\n\nappserver: *** Begin Server Event ***')
+        print(f"appserver: Accepted connection from {addr}")
         conn.setblocking(False)
         message = libserver.Message(self, self.sel, conn, addr, self.audio_device)
         #self._event(message.event_to_send)

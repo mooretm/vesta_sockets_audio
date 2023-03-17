@@ -41,7 +41,7 @@ class Message:
         action = self.request.get("action")
         if action == "playaudio":
             self.audio_dict = self.request.get("value")
-            answer = f"Found file: {self.audio_dict.get('filepath')}\n " \
+            answer = f"\nFound file: {self.audio_dict.get('filepath')}\n" \
                 f"Found level: {self.audio_dict.get('level')}"
             content = {"result": answer}
             #self.event_to_send = '<<ServerPlayAudio>>'
@@ -81,7 +81,7 @@ class Message:
         elif mode == "rw":
             events = selectors.EVENT_READ | selectors.EVENT_WRITE
         else:
-            raise ValueError(f"libserver: Invalid events mask mode {mode!r}.")
+            raise ValueError(f"\nlibserver: Invalid events mask mode {mode!r}.")
         self.selector.modify(self.sock, events, data=self)
 
 
@@ -96,12 +96,12 @@ class Message:
             if data:
                 self._recv_buffer += data
             else:
-                raise RuntimeError("libserver: Peer closed.")
+                raise RuntimeError("\nlibserver: Peer closed.")
 
 
     def _write(self):
         if self._send_buffer:
-            print(f"libserver: Sending {self._send_buffer!r} to {self.addr}")
+            print(f"\nlibserver: Sending {self._send_buffer!r} to {self.addr}")
             try:
                 # Should be ready to write
                 sent = self.sock.send(self._send_buffer)
@@ -184,7 +184,8 @@ class Message:
 
 
     def close(self):
-        print(f"libserver: Closing connection to {self.addr}")
+        print(f"\nlibserver: Closing connection to {self.addr}")
+        print('libserver: *** End Server Event ***')
         try:
             self.selector.unregister(self.sock)
         except Exception as e:
