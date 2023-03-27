@@ -100,9 +100,9 @@ class MainMenu(tk.Menu):
         about_message = 'Socket Audio Player'
         about_detail = (
             'Written by: Travis M. Moore\n'
-            'Version 1.0.1\n'
+            'Version 1.1.0\n'
             'Created: Feb 28, 2023\n'
-            'Last edited: March 17, 2023'
+            'Last edited: March 27, 2023'
         )
         messagebox.showinfo(
             title='About',

@@ -1,9 +1,9 @@
 # **Socket Audio Player**
 
 - Written by: **Travis M. Moore**
-- Latest version: **Version 1.0.1**
+- Latest version: **Version 1.1.0**
 - Originally created: **February 28, 2023**
-- Last edited: **March 17, 2023**
+- Last edited: **March 27, 2023**
 <br>
 <br>
 

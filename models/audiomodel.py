@@ -92,7 +92,7 @@ class Audio:
         print(f"audiomodel: Device outputs: {self.num_outputs}")
 
         # Set presentation level
-        if not level:
+        if level == None:
             # Normalize if no level is provided
             print("audiomodel: No level provided, normalizing...")
             for chan in range(0, self.num_channels):
